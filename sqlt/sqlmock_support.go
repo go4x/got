@@ -1,4 +1,4 @@
-package testx
+package sqlt
 
 import (
 	"database/sql"
