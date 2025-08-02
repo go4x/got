@@ -45,3 +45,40 @@ func (c *caseImpl) Err() error {
 func NewCase(name string, input any, want any, wantErr bool, err error) Case {
 	return &caseImpl{name: name, input: input, want: want, wantErr: wantErr, err: err}
 }
+
+func CaseBuilder(name string) *caseBuilder {
+	return &caseBuilder{caseImpl: caseImpl{name: name}}
+}
+
+type caseBuilder struct {
+	caseImpl
+}
+
+func (b *caseBuilder) Name(name string) *caseBuilder {
+	b.name = name
+	return b
+}
+
+func (b *caseBuilder) Input(input any) *caseBuilder {
+	b.input = input
+	return b
+}
+
+func (b *caseBuilder) Want(want any) *caseBuilder {
+	b.want = want
+	return b
+}
+
+func (b *caseBuilder) WantErr(wantErr bool) *caseBuilder {
+	b.wantErr = wantErr
+	return b
+}
+
+func (b *caseBuilder) Err(err error) *caseBuilder {
+	b.err = err
+	return b
+}
+
+func (b *caseBuilder) Build() Case {
+	return &b.caseImpl
+}
