@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gophero/got"
+	"github.com/go4x/got"
 )
 
 func TestNew(t *testing.T) {

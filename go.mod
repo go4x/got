@@ -1,4 +1,4 @@
-module github.com/gophero/got
+module github.com/go4x/got
 
 go 1.24.0
 
