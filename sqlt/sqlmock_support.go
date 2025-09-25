@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// AnyTime 表示任何时间的结构，只验证是否是时间类型，不匹配时间的值
+// AnyTime is a struct that matches any time type, ignoring the value
 type AnyTime struct{}
 
 // Match satisfies sqlmock.Argument interface
@@ -30,22 +30,22 @@ type MockGorm struct {
 	DB *gorm.DB
 }
 
-func NewSqlmock() *MockDB {
+func NewSqlmock() (*MockDB, error) {
 	db, mock, err := sqlmock.New() // mock db
 	if err != nil {
-		panic(fmt.Errorf("failed to create sqlmock: %v", err))
+		return nil, fmt.Errorf("failed to create sqlmock: %v", err)
 	}
-	return &MockDB{DB: db, Sqlmock: mock}
+	return &MockDB{DB: db, Sqlmock: mock}, nil
 }
 
-func (m *MockDB) Gorm() *MockGorm {
-	// 创建 gorm.DB
+func (m *MockDB) Gorm() (*MockGorm, error) {
+	// create gorm.DB
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn:                      m.DB,
 		SkipInitializeWithVersion: true,
 	}), &gorm.Config{})
 	if err != nil {
-		panic(fmt.Errorf("failed to open gorm connection: %v", err))
+		return nil, fmt.Errorf("failed to open gorm connection: %v", err)
 	}
-	return &MockGorm{MockDB: m, DB: db}
+	return &MockGorm{MockDB: m, DB: db}, nil
 }

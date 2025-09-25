@@ -15,13 +15,13 @@ func MockRedis() (*redis.Client, redismock.ClientMock) {
 	return redismock.NewClientMock()
 }
 
-func NewMiniRedis() *redis.Client {
-	// 测试用miniredis
+func NewMiniRedis() (*redis.Client, error) {
+	// miniredis for test
 	mr, err := miniredis.Run()
 	if err != nil {
-		panic(fmt.Errorf("new test redis error: %v", err))
+		return nil, fmt.Errorf("new test redis error: %v", err)
 	}
-	// 使用miniredis创建client
+	// create client using miniredis
 	client := redis.NewClient(&redis.Options{
 		Addr:         mr.Addr(),
 		Password:     "",
@@ -35,13 +35,13 @@ func NewMiniRedis() *redis.Client {
 
 	_, err = client.Ping(ctx).Result()
 	if err != nil {
-		panic(fmt.Sprintf("Redis error: %s", err.Error()))
+		return nil, fmt.Errorf("redis error: %s", err.Error())
 	}
 	log.Printf("redis connected, url: %s\n", client.Conn().String())
-	return client
+	return client, nil
 }
 
 func NewRedisCluster() redis.UniversalClient {
-	// TODO mock redis cluster
+	// TODO: mock redis cluster
 	return nil
 }

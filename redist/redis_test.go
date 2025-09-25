@@ -41,7 +41,10 @@ func TestMockRedis(t *testing.T) {
 
 // TestNewMiniRedis tests the NewMiniRedis function
 func TestNewMiniRedis(t *testing.T) {
-	client := NewMiniRedis()
+	client, err := NewMiniRedis()
+	if err != nil {
+		t.Errorf("NewMiniRedis should not return error, got: %v", err)
+	}
 
 	if client == nil {
 		t.Error("NewMiniRedis should return a non-nil client")
@@ -51,7 +54,7 @@ func TestNewMiniRedis(t *testing.T) {
 	ctx := context.Background()
 
 	// Test SET operation
-	err := client.Set(ctx, "test-key", "test-value", 0).Err()
+	err = client.Set(ctx, "test-key", "test-value", 0).Err()
 	if err != nil {
 		t.Errorf("Set operation should not return error, got: %v", err)
 	}
@@ -81,7 +84,10 @@ func TestNewMiniRedis(t *testing.T) {
 
 // TestRedisOperations tests various Redis operations
 func TestRedisOperations(t *testing.T) {
-	client := NewMiniRedis()
+	client, err := NewMiniRedis()
+	if err != nil {
+		t.Errorf("NewMiniRedis should not return error, got: %v", err)
+	}
 	ctx := context.Background()
 
 	// Test string operations
@@ -175,11 +181,14 @@ func TestRedisOperations(t *testing.T) {
 
 // TestRedisErrorHandling tests error handling scenarios
 func TestRedisErrorHandling(t *testing.T) {
-	client := NewMiniRedis()
+	client, err := NewMiniRedis()
+	if err != nil {
+		t.Errorf("NewMiniRedis should not return error, got: %v", err)
+	}
 	ctx := context.Background()
 
 	// Test GET on non-existent key
-	_, err := client.Get(ctx, "non-existent-key").Result()
+	_, err = client.Get(ctx, "non-existent-key").Result()
 	if err != redis.Nil {
 		t.Errorf("Expected redis.Nil for non-existent key, got: %v", err)
 	}
@@ -193,7 +202,10 @@ func TestRedisErrorHandling(t *testing.T) {
 
 // TestRedisConcurrency tests concurrent operations
 func TestRedisConcurrency(t *testing.T) {
-	client := NewMiniRedis()
+	client, err := NewMiniRedis()
+	if err != nil {
+		t.Errorf("NewMiniRedis should not return error, got: %v", err)
+	}
 	ctx := context.Background()
 
 	// Test concurrent SET operations

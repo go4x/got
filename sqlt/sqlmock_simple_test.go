@@ -29,7 +29,10 @@ func TestAnyTime(t *testing.T) {
 
 // TestNewSqlmock tests the NewSqlmock function
 func TestNewSqlmock(t *testing.T) {
-	mockDB := NewSqlmock()
+	mockDB, err := NewSqlmock()
+	if err != nil {
+		t.Errorf("NewSqlmock should not return error, got: %v", err)
+	}
 
 	if mockDB == nil {
 		t.Error("NewSqlmock should return a non-nil MockDB")
@@ -46,9 +49,15 @@ func TestNewSqlmock(t *testing.T) {
 
 // TestGorm tests the Gorm function
 func TestGorm(t *testing.T) {
-	mockDB := NewSqlmock()
+	mockDB, err := NewSqlmock()
+	if err != nil {
+		t.Errorf("NewSqlmock should not return error, got: %v", err)
+	}
 
-	gormMock := mockDB.Gorm()
+	gormMock, err := mockDB.Gorm()
+	if err != nil {
+		t.Errorf("Gorm should not return error, got: %v", err)
+	}
 	if gormMock == nil {
 		t.Error("Gorm should return a non-nil MockGorm")
 	}
@@ -60,7 +69,10 @@ func TestGorm(t *testing.T) {
 
 // TestMockDBOperations tests basic mock operations
 func TestMockDBOperations(t *testing.T) {
-	mockDB := NewSqlmock()
+	mockDB, err := NewSqlmock()
+	if err != nil {
+		t.Errorf("NewSqlmock should not return error, got: %v", err)
+	}
 
 	// Test basic query expectation
 	mockDB.Sqlmock.ExpectQuery("SELECT \\* FROM users").
@@ -83,7 +95,10 @@ func TestMockDBOperations(t *testing.T) {
 
 // TestMockDBExec tests exec operations
 func TestMockDBExec(t *testing.T) {
-	mockDB := NewSqlmock()
+	mockDB, err := NewSqlmock()
+	if err != nil {
+		t.Errorf("NewSqlmock should not return error, got: %v", err)
+	}
 
 	// Test exec expectation
 	mockDB.Sqlmock.ExpectExec("INSERT INTO users").

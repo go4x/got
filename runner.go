@@ -38,9 +38,22 @@ import (
 )
 
 const (
-	checkMark = "\033[32m\u2713\033[0m" // green √
-	ballotX   = "\033[31m\u2717\033[0m" // red ×
+	checkMark = "\033[32m✓\033[0m" // green ✓
+	ballotX   = "\033[31m✗\033[0m" // red ✗
 )
+
+// checkColorSupport checks if the terminal supports color output
+func checkColorSupport() bool {
+	// Check if colors are explicitly disabled
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
+
+	// Check if we're in a terminal that supports colors
+	// This is a simple check - in production you might want more sophisticated detection
+	term := os.Getenv("TERM")
+	return term != "" && term != "dumb"
+}
 
 // R represents a test runner that provides a fluent API for writing tests.
 // It embeds *testing.T to provide all standard testing functionality while
@@ -208,7 +221,11 @@ func (r *R) Cases(cases []Case, f func(c Case, tt *testing.T)) {
 //	r.Pass("User authentication succeeded")
 //	r.Pass("Value %d is within expected range", 42)
 func (r *R) Pass(format string, args ...any) {
-	r.Logf("\t%s "+format, prependTag(checkMark, args...)...)
+	if checkColorSupport() {
+		r.Logf("\t%s "+format, prependTag(checkMark, args...)...)
+	} else {
+		r.Logf("\t[PASS] "+format, args...)
+	}
 }
 
 // Fail logs a failed assertion with a red X mark.
@@ -224,7 +241,11 @@ func (r *R) Pass(format string, args ...any) {
 //	r.Fail("User authentication should have succeeded")
 //	r.Fail("Value %d is outside expected range", 100)
 func (r *R) Fail(format string, args ...any) {
-	r.Errorf("\t%s "+format, prependTag(ballotX, args...)...)
+	if checkColorSupport() {
+		r.Errorf("\t%s "+format, prependTag(ballotX, args...)...)
+	} else {
+		r.Errorf("\t[FAIL] "+format, args...)
+	}
 }
 
 // Fatal logs a fatal error and immediately stops test execution.
@@ -240,7 +261,11 @@ func (r *R) Fail(format string, args ...any) {
 //	r.Fatal("Database connection failed - cannot continue test")
 //	r.Fatal("Critical system component %s is not available", "auth-service")
 func (r *R) Fatal(format string, args ...any) {
-	r.Fatalf("\t%s "+format, prependTag(ballotX, args...)...)
+	if checkColorSupport() {
+		r.Fatalf("\t%s "+format, prependTag(ballotX, args...)...)
+	} else {
+		r.Fatalf("\t[FATAL] "+format, args...)
+	}
 }
 
 func prependTag(tag any, args ...any) []any {
@@ -296,6 +321,9 @@ func (r *R) FailNow(cond bool, desc string, args ...any) {
 	} else {
 		r.Fail(desc, args...)
 		r.T.FailNow()
+		// This line should never be reached due to FailNow above
+		// But we add it as a safety measure
+		return
 	}
 }
 
@@ -605,33 +633,7 @@ func (r *R) AssertFalse(condition bool, msg ...string) *R {
 
 // AssertContains provides a more descriptive contains assertion
 func (r *R) AssertContains(container, item any, msg ...string) *R {
-	contains := false
-
-	switch c := container.(type) {
-	case string:
-		if itemStr, ok := item.(string); ok {
-			contains = strings.Contains(c, itemStr)
-		}
-	case []any:
-		for _, v := range c {
-			if reflect.DeepEqual(v, item) {
-				contains = true
-				break
-			}
-		}
-	default:
-		// Use reflection for other types
-		rv := reflect.ValueOf(container)
-		switch rv.Kind() {
-		case reflect.Slice, reflect.Array:
-			for i := 0; i < rv.Len(); i++ {
-				if reflect.DeepEqual(rv.Index(i).Interface(), item) {
-					contains = true
-					break
-				}
-			}
-		}
-	}
+	contains := r.contains(container, item)
 
 	if !contains {
 		message := fmt.Sprintf("Expected %v to contain %v", container, item)
@@ -645,8 +647,7 @@ func (r *R) AssertContains(container, item any, msg ...string) *R {
 	return r
 }
 
-// AssertNotContains provides a more descriptive not-contains assertion
-func (r *R) AssertNotContains(container, item any, msg ...string) *R {
+func (r *R) contains(container, item any) bool {
 	contains := false
 
 	switch c := container.(type) {
@@ -674,6 +675,12 @@ func (r *R) AssertNotContains(container, item any, msg ...string) *R {
 			}
 		}
 	}
+	return contains
+}
+
+// AssertNotContains provides a more descriptive not-contains assertion
+func (r *R) AssertNotContains(container, item any, msg ...string) *R {
+	contains := r.contains(container, item)
 
 	if contains {
 		message := fmt.Sprintf("Expected %v not to contain %v", container, item)
